@@ -10,6 +10,7 @@ public interface BankAccountService {
     public Flux<BankAccount> findAll();
 
     public Mono<BankAccount> findById(String idBankAccount);
+    public Mono<BankAccount> findByAccountNumber(String accountNumber);
 
     public Mono<BankAccount> save(BankAccountDto bankAccountDto);
 

@@ -40,6 +40,13 @@ public class BankAccountServiceImpl implements BankAccountService {
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Cuenta Bancaria", "idBankAccount", idBankAccount)));
     }
 
+    @Override
+    public Mono<BankAccount> findByAccountNumber(String accountNumber) {
+        return Mono.just(accountNumber)
+                .flatMap(bankAccountRepository::findByAccountNumber)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Numero Cuenta Bancaria", "accountNumber", accountNumber)));
+    }
+
 
     @Override
     public Mono<BankAccount> save(BankAccountDto bankAccountDto) {

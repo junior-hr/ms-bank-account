@@ -29,8 +29,14 @@ public class BankAccountController {
     }
 
     @GetMapping("/{idBankAccount}")
-    public Mono<ResponseEntity<BankAccount>> viewBankAccountDetails(@PathVariable("idBankAccount") String idClient) {
+    public Mono<ResponseEntity<BankAccount>> getBankAccountDetails(@PathVariable("idBankAccount") String idClient) {
         return service.findById(idClient).map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(c))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/accountNumber/{accountNumber}")
+    public Mono<ResponseEntity<BankAccount>> getBankAccountByAccountNumber(@PathVariable("accountNumber") String accountNumber) {
+        return service.findByAccountNumber(accountNumber).map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(c))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
