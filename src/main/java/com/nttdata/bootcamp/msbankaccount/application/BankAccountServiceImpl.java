@@ -4,6 +4,8 @@ import com.nttdata.bootcamp.msbankaccount.config.WebClientConfig;
 import com.nttdata.bootcamp.msbankaccount.dto.BankAccountDto;
 import com.nttdata.bootcamp.msbankaccount.exception.ResourceNotFoundException;
 import com.nttdata.bootcamp.msbankaccount.model.Client;
+import com.nttdata.bootcamp.msbankaccount.model.Movement;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,6 +30,16 @@ public class BankAccountServiceImpl implements BankAccountService {
         );
     }
 
+    public Mono<Movement> findLastMovementByAccountNumber(String accountNumber) {
+        log.info("ini----findLastMovementByAccountNumber-------: ");
+        WebClientConfig webconfig = new WebClientConfig();
+        return webconfig.setUriData("http://localhost:8091/").flatMap(
+                d -> {
+                    return webconfig.getWebclient().get().uri("/api/movements/last/accountNumber/" + accountNumber).retrieve().bodyToMono(Movement.class);
+                }
+        );
+    }
+
     @Override
     public Flux<BankAccount> findAll() {
         return bankAccountRepository.findAll();
@@ -44,9 +56,31 @@ public class BankAccountServiceImpl implements BankAccountService {
     public Mono<BankAccount> findByAccountNumber(String accountNumber) {
         return Mono.just(accountNumber)
                 .flatMap(bankAccountRepository::findByAccountNumber)
-                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Numero Cuenta Bancaria", "accountNumber", accountNumber)));
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Número Cuenta Bancaria", "accountNumber", accountNumber)));
     }
 
+    @Override
+    public Flux<BankAccount> findByDocumentNumber(String documentNumber, String accountType) {
+        log.info("ini----findByDocumentNumber-------: ");
+        log.info("ini----findByDocumentNumber-------documentNumber, accountType : " +documentNumber + " --- "+ accountType );
+        return bankAccountRepository.findByAccountClient(documentNumber, accountType )
+                .flatMap(d -> {
+                    log.info("ini----findByAccountClient-------: ");
+                    return findLastMovementByAccountNumber(documentNumber)
+                            .switchIfEmpty(Mono.defer(() -> {
+                                log.info("----2 switchIfEmpty-------: ");
+                                Movement mv = Movement.builder()
+                                        .balance(d.getStartingAmount())
+                                        .build();
+                                return Mono.just(mv);
+                            }))
+                            .flatMap(m -> {
+                                log.info("----findByDocumentNumber setBalance-------: ");
+                                d.setBalance(m.getBalance());
+                                return Mono.just(d);
+                            });
+                });
+    }
 
     @Override
     public Mono<BankAccount> save(BankAccountDto bankAccountDto) {
@@ -75,8 +109,8 @@ public class BankAccountServiceImpl implements BankAccountService {
     public Mono<Boolean> validateNumberClientAccounts(Client client, BankAccountDto bankAccountDto, String method) {
         log.info("ini validateNumberClientAccounts-------: ");
         Boolean isOk = false;
-        if (client.getClientType().equals("Personal") ) {
-            if(method.equals("save")){
+        if (client.getClientType().equals("Personal")) {
+            if (method.equals("save")) {
                 Flux<BankAccount> lista = bankAccountRepository.findByAccountClient(client.getDocumentNumber(), bankAccountDto.getAccountType());
                 return lista.count().flatMap(cnt -> {
                     log.info("1 Personal cnt-------: ", cnt);
@@ -88,7 +122,7 @@ public class BankAccountServiceImpl implements BankAccountService {
                         return Mono.just(true);
                     }
                 });
-            }else{
+            } else {
                 return Mono.just(true);
             }
         } else if (client.getClientType().equals("Business")) {

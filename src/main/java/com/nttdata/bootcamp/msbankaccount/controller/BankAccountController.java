@@ -1,12 +1,15 @@
 package com.nttdata.bootcamp.msbankaccount.controller;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import com.nttdata.bootcamp.msbankaccount.dto.BankAccountDto;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.springframework.http.HttpStatus;
@@ -19,6 +22,7 @@ import com.nttdata.bootcamp.msbankaccount.application.BankAccountService;
 
 @RestController
 @RequestMapping("/api/bankaccounts")
+@Slf4j
 public class BankAccountController {
     @Autowired
     private BankAccountService service;
@@ -37,6 +41,18 @@ public class BankAccountController {
     @GetMapping("/accountNumber/{accountNumber}")
     public Mono<ResponseEntity<BankAccount>> getBankAccountByAccountNumber(@PathVariable("accountNumber") String accountNumber) {
         return service.findByAccountNumber(accountNumber).map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(c))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/documentNumber/{documentNumber}/AccountType/{accountType}")
+    public Mono<ResponseEntity<List<BankAccount>>> getBankAccountByDocumentNumberAndAccountType(@PathVariable("documentNumber") String documentNumber, @PathVariable("accountType") String accountType) {
+        return service.findByDocumentNumber(documentNumber, accountType)
+                .flatMap( mm ->{
+                    log.info("--getBankAccountByDocumentNumberAndAccountType-------: " + mm.toString());
+                    return Mono.just(mm);
+                })
+                .collectList()
+                .map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(c))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 

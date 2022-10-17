@@ -16,6 +16,7 @@ import javax.validation.constraints.NotEmpty;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 @Builder
 public class BankAccount {
 
@@ -48,4 +49,5 @@ public class BankAccount {
     private String currency;
 
 
+    private Double  Balance;
 }
