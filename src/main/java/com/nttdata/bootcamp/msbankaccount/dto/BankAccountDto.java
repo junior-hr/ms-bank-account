@@ -3,7 +3,6 @@ package com.nttdata.bootcamp.msbankaccount.dto;
 import com.nttdata.bootcamp.msbankaccount.dto.bean.CheckingAccount;
 import com.nttdata.bootcamp.msbankaccount.dto.bean.FixedTermAccount;
 import com.nttdata.bootcamp.msbankaccount.dto.bean.SavingAccount;
-import com.nttdata.bootcamp.msbankaccount.model.DebitCard;
 import com.nttdata.bootcamp.msbankaccount.model.Headline;
 import com.nttdata.bootcamp.msbankaccount.model.Movement;
 import lombok.*;

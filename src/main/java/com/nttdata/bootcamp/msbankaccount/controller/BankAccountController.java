@@ -7,9 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import javax.validation.Valid;
 
-import com.nttdata.bootcamp.msbankaccount.dto.BalanceSummaryDto;
 import com.nttdata.bootcamp.msbankaccount.dto.BankAccountDto;
-import com.nttdata.bootcamp.msbankaccount.dto.bean.BankAccountBean;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -107,14 +105,16 @@ public class BankAccountController {
     }
 
     @GetMapping("/documentNumber/{documentNumber}/cardNumber/{cardNumber}/withdrawalAmount/{withdrawalAmount}")
-    public Mono<ResponseEntity<List<BankAccount>>> getBankAccountByDocumentNumberAndWithdrawalAmount(
-            @PathVariable("documentNumber") String documentNumber, @PathVariable("cardNumber") String cardNumber, @PathVariable("withdrawalAmount") Double withdrawalAmount) {
-
+    public Mono<ResponseEntity<List<BankAccount>>> getBankAccountByDocumentNumberAndWithdrawalAmount(@PathVariable("documentNumber") String documentNumber, @PathVariable("cardNumber") String cardNumber, @PathVariable("withdrawalAmount") Double withdrawalAmount) {
         return service.findByDocumentNumberAndWithdrawalAmount(documentNumber, cardNumber, withdrawalAmount)
-                .flatMap(mm -> {
-                    log.info("--getBankAccountByDocumentNumberAndAccountType-------: " + mm.toString());
-                    return Mono.just(mm);
-                })
+                .collectList()
+                .map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(c))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/documentNumber/{documentNumber}")
+    public Mono<ResponseEntity<List<BankAccount>>> getBankAccountBalanceByDocumentNumber(@PathVariable("documentNumber") String documentNumber ) {
+        return service.findBankAccountBalanceByDocumentNumber(documentNumber)
                 .collectList()
                 .map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(c))
                 .defaultIfEmpty(ResponseEntity.notFound().build());

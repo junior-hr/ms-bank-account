@@ -1,8 +1,6 @@
 package com.nttdata.bootcamp.msbankaccount.model;
 
-import java.util.List;
 import lombok.Builder;
-import lombok.ToString;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.AllArgsConstructor;

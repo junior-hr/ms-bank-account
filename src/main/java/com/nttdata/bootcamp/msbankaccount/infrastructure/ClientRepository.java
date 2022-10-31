@@ -2,13 +2,10 @@ package com.nttdata.bootcamp.msbankaccount.infrastructure;
 
 import com.nttdata.bootcamp.msbankaccount.config.WebClientConfig;
 import com.nttdata.bootcamp.msbankaccount.model.Client;
-import com.nttdata.bootcamp.msbankaccount.model.Movement;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
-import org.springframework.data.mapping.Parameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Repository;

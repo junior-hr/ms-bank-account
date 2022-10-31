@@ -1,9 +1,7 @@
 package com.nttdata.bootcamp.msbankaccount.infrastructure;
 
 import com.nttdata.bootcamp.msbankaccount.config.WebClientConfig;
-import com.nttdata.bootcamp.msbankaccount.model.Client;
 import com.nttdata.bootcamp.msbankaccount.model.Credit;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

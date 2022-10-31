@@ -1,8 +1,6 @@
 package com.nttdata.bootcamp.msbankaccount.application;
 
-import com.nttdata.bootcamp.msbankaccount.dto.BalanceSummaryDto;
 import com.nttdata.bootcamp.msbankaccount.dto.BankAccountDto;
-import com.nttdata.bootcamp.msbankaccount.dto.bean.BankAccountBean;
 import com.nttdata.bootcamp.msbankaccount.model.BankAccount;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,4 +27,7 @@ public interface BankAccountService {
     public Mono<BankAccount> updateBalanceById(String idBankAccount, Double balance);
 
     public Mono<BankAccount> findByDebitCardNumberAndIsMainAccount(String debitCardNumber);
+
+    public Flux<BankAccount> findBankAccountBalanceByDocumentNumber(String documentNumber);
+
 }
