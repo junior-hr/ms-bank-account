@@ -16,9 +16,6 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/BankAccountDB
-      #host: localhost
-      #port: 27017
-      #database: BankAccountDB
       auto-index-creation: true
   config:
     import: optional:configserver:http://ms-config-server:8888
