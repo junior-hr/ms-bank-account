@@ -29,12 +29,39 @@ eureka:
 resilience4j:
   circuitbreaker:
     instances:
-      bank-account:
+      clientCB:
         failureRateThreshold: 50
         minimumNumberOfCalls: 4
         slidingWindowType: COUNT_BASED
         slidingWindowSize: 8
-        waitDurationInOpenState: 50s
+        waitDurationInOpenState: 2s
         permittedNumberOfCallsInHalfOpenState: 3
+      creditCB:
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 4
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 8
+        waitDurationInOpenState: 2s
+        permittedNumberOfCallsInHalfOpenState: 3
+      debitcardCB:
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 4
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 8
+        waitDurationInOpenState: 2s
+        permittedNumberOfCallsInHalfOpenState: 3
+      movementCB:
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 4
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 8
+        waitDurationInOpenState: 2s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+  retry:
+    instances:
+      usermsclientService:
+        maxRetryAttempts: 5
+        waitDuration: 10s
 message:
   demo: leido desde local

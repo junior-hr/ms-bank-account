@@ -30,7 +30,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     @Autowired
     private MovementRepository movementRepository;
     @Autowired
-    private CreditRespoditory creditRespoditory;
+    private CreditRepository creditRepository;
     @Autowired
     private DebitCardRepository debitCardRepository;
 
@@ -55,26 +55,14 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public Flux<BankAccount> findByDocumentNumber(String documentNumber, String accountType) {
-        log.info("----findByDocumentNumber-------: " + documentNumber + " -- " + documentNumber);
         return bankAccountRepository.findByAccountClient(documentNumber, accountType)
-                .flatMap(d -> movementRepository.findLastMovementByAccountNumber(d.getAccountNumber())
-                        .switchIfEmpty(Mono.defer(() -> {
-                            Movement mv = Movement.builder()
-                                    .balance(d.getStartingAmount())
-                                    .build();
-                            return Mono.just(mv);
-                        }))
-                        .flatMap(m -> {
-                            d.setBalance(m.getBalance());
-                            return Mono.just(d);
-                        })
-                );
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Número Cuenta Bancaria", "documentNumber", documentNumber)));
     }
 
     @Override
     public Mono<BankAccountDto> findMovementsByDocumentNumber(String documentNumber, String accountNumber) {
-        log.info("----findMovementsByDocumentNumber-------documentNumber, accountNumber : " + documentNumber + " --- " + accountNumber);
         return bankAccountRepository.findByAccountAndDocumentNumber(documentNumber, accountNumber)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Cuenta Bancaria", "accountNumber", accountNumber)))
                 .flatMap(d -> movementRepository.findMovementsByAccountNumber(accountNumber)
                         .collectList()
                         .flatMap(m -> {
@@ -101,6 +89,7 @@ public class BankAccountServiceImpl implements BankAccountService {
                     }
                 })
                 .flatMap(mba -> clientRepository.findClientByDni(mba.getDocumentNumber())
+                        .switchIfEmpty(Mono.error(new ResourceNotFoundException("Cliente", "DocumentNumber", mba.getDocumentNumber())))
                         .flatMap(clnt -> validateNumberClientAccounts(clnt, mba, "save").then(Mono.just(clnt)))
                         .flatMap(clnt -> mba.validateFields()
                                 .flatMap(at -> mba.MapperToBankAccount(clnt))
@@ -124,6 +113,7 @@ public class BankAccountServiceImpl implements BankAccountService {
                 .flatMap(badto -> {
                     if (badto.getCardNumber() != null) {
                         return debitCardRepository.findByCardNumber(badto.getCardNumber())
+                                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Tarjeta de débito", "CardNumber", badto.getCardNumber())))
                                 .flatMap(dc -> {
                                     if (dc.getIdDebitCard() != null) {
                                         return bankAccountRepository.findByClientAndCard(badto.getDocumentNumber(), badto.getCardNumber())
@@ -181,6 +171,7 @@ public class BankAccountServiceImpl implements BankAccountService {
                         return Mono.error(new ResourceNotFoundException("Tipo Cuenta", "AccountType", badto.getAccountType()));
                     }
                 }).flatMap(mba -> clientRepository.findClientByDni(mba.getDocumentNumber())
+                        .switchIfEmpty(Mono.error(new ResourceNotFoundException("Cliente", "DocumentNumber", mba.getDocumentNumber())))
                         .flatMap(clnt -> validateNumberClientAccounts(clnt, mba, "update").then(Mono.just(clnt)))
                         .flatMap(clnt -> mba.validateFields()
                                 .flatMap(at -> mba.MapperToBankAccount(clnt))
@@ -202,13 +193,16 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public Mono<Void> delete(BankAccount bankAccount) {
-        return bankAccountRepository.delete(bankAccount);
+    public Mono<Void> delete(String idBankAccount) {
+        return Mono.just(idBankAccount)
+                .flatMap( b -> bankAccountRepository.findById(idBankAccount))
+                .switchIfEmpty( Mono.error(new ResourceNotFoundException("Cuenta Bancaria", "idBankAccount", idBankAccount )))
+                .flatMap( bankAccountRepository::delete );
     }
 
     public Mono<Boolean> verifyThatYouHaveACreditCard(Client client, Double minimumAmount) {
         log.info("--verifyThatYouHaveACreditCard-------minimumAmount: " + (minimumAmount == null ? "" : minimumAmount.toString()));
-        return creditRespoditory.findCreditsByDocumentNumber(client.getDocumentNumber()).count()
+        return creditRepository.findCreditsByDocumentNumber(client.getDocumentNumber()).count()
                 .flatMap(cnt -> {
                     String profile = "0";
                     if (cnt > 0) {
@@ -264,7 +258,6 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public Flux<BankAccount> findByDocumentNumberAndWithdrawalAmount(String documentNumber, String cardNumber, Double withdrawalAmount) {
-        log.info("ini----findByDocumentNumberAndWithdrawalAmount------- : " + documentNumber + " --- " + cardNumber + " --- " + withdrawalAmount);
         return bankAccountRepository.findByClientAndCardAndIsNotMainAccount(documentNumber, cardNumber)
                 .collectList()
                 .flatMap(dcc -> {
@@ -311,7 +304,7 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public Flux<BankAccount> findBankAccountBalanceByDocumentNumber(String documentNumber) {
-        log.info("---findBankAccountBalanceByDocumentNumber------- : " + documentNumber);
-        return bankAccountRepository.findBankAccountBalanceByDocumentNumber(documentNumber);
+        return bankAccountRepository.findBankAccountBalanceByDocumentNumber(documentNumber)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Cliente", "documentNumber", documentNumber)));
     }
 }

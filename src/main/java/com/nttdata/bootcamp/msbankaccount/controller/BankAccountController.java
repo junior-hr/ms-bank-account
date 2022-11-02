@@ -80,18 +80,12 @@ public class BankAccountController {
 
     @DeleteMapping("/{idBankAccount}")
     public Mono<ResponseEntity<Void>> deleteBankAccount(@PathVariable("idBankAccount") String idBankAccount) {
-        return service.findById(idBankAccount).flatMap(c ->
-                service.delete(c).then(Mono.just(new ResponseEntity<Void>(HttpStatus.NO_CONTENT)))
-        ).defaultIfEmpty(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
+        return service.delete(idBankAccount).then(Mono.just(new ResponseEntity<Void>(HttpStatus.NO_CONTENT)));
     }
 
     @GetMapping("/documentNumber/{documentNumber}/AccountType/{accountType}")
     public Mono<ResponseEntity<List<BankAccount>>> getBankAccountByDocumentNumberAndAccountType(@PathVariable("documentNumber") String documentNumber, @PathVariable("accountType") String accountType) {
         return service.findByDocumentNumber(documentNumber, accountType)
-                .flatMap(mm -> {
-                    log.info("--getBankAccountByDocumentNumberAndAccountType-------: " + mm.toString());
-                    return Mono.just(mm);
-                })
                 .collectList()
                 .map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(c))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
@@ -120,9 +114,4 @@ public class BankAccountController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    /*@GetMapping("/resumeClient/debt/{documentNumber}/accountType/{accountType}")
-    public Flux<ResponseEntity<BalanceSummaryDto>> getResumenByDocumentNumber(@PathVariable String documentNumber, @PathVariable String accountType) {
-        return service.getResumenByClientDocumentNumber(documentNumber, accountType).map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(c))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
-    }*/
 }

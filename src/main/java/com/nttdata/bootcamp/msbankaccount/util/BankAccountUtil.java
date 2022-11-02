@@ -11,6 +11,11 @@ import java.util.Date;
 @Component
 public class BankAccountUtil {
 
+	public static final String CLIENT_CB = "clientCB";
+	public static final String CREDIT_CB = "creditCB";
+	public static final String DEBITCARD_CB = "debitcardCB";
+	public static final String MOVEMENT_CB = "movementCB";
+
     public LocalDate dateToLocalDate(Date date) {
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }

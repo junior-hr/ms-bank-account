@@ -18,7 +18,7 @@ public interface BankAccountService {
 
     public Mono<BankAccount> update(BankAccountDto bankAccountDto, String idBankAccount);
 
-    public Mono<Void> delete(BankAccount bankAccount);
+    public Mono<Void> delete(String idBankAccount);
 
     public Mono<BankAccountDto> findMovementsByDocumentNumber(String documentNumber, String accountNumber);
 
