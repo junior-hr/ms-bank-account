@@ -1,10 +1,7 @@
 package com.nttdata.bootcamp.msbankaccount.controller;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 import javax.validation.Valid;
 
 import com.nttdata.bootcamp.msbankaccount.dto.BankAccountDto;
@@ -45,7 +42,7 @@ public class BankAccountController {
     }
 
     @GetMapping("/debitCardNumber/{debitCardNumber}")
-    public Mono<ResponseEntity<BankAccount>> getBankAccountByDebitCardNumber( @PathVariable("debitCardNumber") String debitCardNumber) {
+    public Mono<ResponseEntity<BankAccount>> getBankAccountByDebitCardNumber(@PathVariable("debitCardNumber") String debitCardNumber) {
         log.info("GetMapping--getBankAccountByDebitCardNumber-------debitCardNumber: " + debitCardNumber);
         return service.findByDebitCardNumberAndIsMainAccount(debitCardNumber).map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(c))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
@@ -107,9 +104,37 @@ public class BankAccountController {
     }
 
     @GetMapping("/documentNumber/{documentNumber}")
-    public Mono<ResponseEntity<List<BankAccount>>> getBankAccountBalanceByDocumentNumber(@PathVariable("documentNumber") String documentNumber ) {
+    public Mono<ResponseEntity<List<BankAccount>>> getBankAccountBalanceByDocumentNumber(@PathVariable("documentNumber") String documentNumber) {
         return service.findBankAccountBalanceByDocumentNumber(documentNumber)
                 .collectList()
+                .map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(c))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/cant/documentNumber/{documentNumber}")
+    public Mono<ResponseEntity<Long>> getCantBankAccountBalanceByDocumentNumber(@PathVariable("documentNumber") String documentNumber) {
+        return service.findBankAccountBalanceByDocumentNumber(documentNumber)
+                .collectList()
+                .map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(c.stream().count()))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/first/documentNumber/{documentNumber}")
+    public Mono<ResponseEntity<BankAccount>> getFirstBankAccountByDocumentNumber(@PathVariable("documentNumber") String documentNumber) {
+        log.info("GetMapping--getFirstBankAccountByDocumentNumber-------documentNumber: " + documentNumber);
+        return service.findBankAccountBalanceByDocumentNumber(documentNumber)
+                .collectList()
+                .doOnNext(c -> log.info("2 GetMapping--getFirstBankAccountByDocumentNumber-------c: " + c))
+                .flatMap(c -> {
+                    Optional<BankAccount> account = c.stream()
+                            .findFirst();
+                    if (account.isPresent()) {
+                        return Mono.just(account.get());
+                    } else {
+                        return Mono.empty();
+                    }
+                })
+                .doOnNext(c -> log.info("3 GetMapping--getFirstBankAccountByDocumentNumber-------c: " + c))
                 .map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(c))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
